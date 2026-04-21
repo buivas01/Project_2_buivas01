@@ -1,0 +1,189 @@
+{
+	"info": {
+		"name": "MDM Project 2",
+		"description": "Test Collection für alle drei MDM-Projekte (MDM-09, MDM-10, MDM-11)",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "MDM-09 Sentiment Analysis (Port 8080)",
+			"item": [
+				{
+					"name": "Ping",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/ping",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["ping"]
+						},
+						"description": "Prüft ob die Sentiment Analysis App läuft.\nErwartete Antwort: Sentiment app is up and running!"
+					}
+				},
+				{
+					"name": "Sentiment - Positiv",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/sentiment?text=I love this product! It is absolutely amazing!",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["sentiment"],
+							"query": [
+								{
+									"key": "text",
+									"value": "I love this product! It is absolutely amazing!"
+								}
+							]
+						},
+						"description": "Positiver Text → Positive sollte hohe Wahrscheinlichkeit haben."
+					}
+				},
+				{
+					"name": "Sentiment - Negativ",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/sentiment?text=This is terrible. I hate it so much.",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["sentiment"],
+							"query": [
+								{
+									"key": "text",
+									"value": "This is terrible. I hate it so much."
+								}
+							]
+						},
+						"description": "Negativer Text → Negative sollte hohe Wahrscheinlichkeit haben."
+					}
+				}
+			]
+		},
+		{
+			"name": "MDM-10 Footwear Classification (Port 8080)",
+			"item": [
+				{
+					"name": "Ping",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/ping",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["ping"]
+						},
+						"description": "Prüft ob die Footwear Classification App läuft.\nErwartete Antwort: Classification app is up and running!"
+					}
+				},
+				{
+					"name": "Analyze - Bild hochladen",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "image",
+									"type": "file",
+									"src": "",
+									"description": "Schuhbild auswählen (JPEG oder PNG)"
+								}
+							]
+						},
+						"url": {
+							"raw": "http://localhost:8080/analyze",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["analyze"]
+						},
+						"description": "POST mit Schuhbild als form-data (Key: image, Typ: File).\nVorbedingung: Training.java wurde ausgeführt und models/ Ordner existiert.\nErwartete Antwort: JSON mit Boot/Sandal/Shoe/Slipper Wahrscheinlichkeiten."
+					}
+				}
+			]
+		},
+		{
+			"name": "MDM-11 DJL Serving Consumer (Port 8082)",
+			"item": [
+				{
+					"name": "Ping",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8082/ping",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8082",
+							"path": ["ping"]
+						},
+						"description": "Prüft ob der Consumer läuft.\nErwartete Antwort: DJL Consumer app is up and running!"
+					}
+				},
+				{
+					"name": "Analyze - Bild hochladen",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "image",
+									"type": "file",
+									"src": "",
+									"description": "Beliebiges Bild auswählen (JPEG oder PNG)"
+								}
+							]
+						},
+						"url": {
+							"raw": "http://localhost:8082/analyze",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8082",
+							"path": ["analyze"]
+						},
+						"description": "POST mit Bild als form-data (Key: image, Typ: File).\nVorbedingung: DJL Serving läuft auf Port 8080 (docker run deepjavalibrary/djl-serving).\nDer Consumer leitet das Bild automatisch weiter an DJL Serving."
+					}
+				}
+			]
+		},
+		{
+			"name": "MDM-11 DJL Serving direkt (Port 8080)",
+			"item": [
+				{
+					"name": "Predict resnet18_v1",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "file",
+							"file": {
+								"src": ""
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/predictions/resnet18_v1",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["predictions", "resnet18_v1"]
+						},
+						"description": "Direkter Aufruf des DJL Serving Models (ohne Consumer).\nVorbedingung: docker run -d -p 8080:8080 deepjavalibrary/djl-serving:0.36.0\nDanach Modell resnet18_v1 über die DJL Web-UI registrieren.\nBody → binary → Bild auswählen."
+					}
+				}
+			]
+		}
+	]
+}

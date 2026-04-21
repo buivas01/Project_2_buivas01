@@ -1,0 +1,15 @@
+services:
+
+  web-service:
+    image: mosazhaw/djl-serving-consumer:latest
+    platform: linux/amd64
+    ports:
+      - "80:8082"
+    depends_on:
+      - model-service
+    restart: always
+
+  model-service:
+    image: mosazhaw/djl-serving:latest
+    platform: linux/amd64
+    restart: always

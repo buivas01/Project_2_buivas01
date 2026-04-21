@@ -1,0 +1,18 @@
+# Build output
+target/
+**/target/
+
+# macOS
+.DS_Store
+
+# Java crash logs
+hs_err_pid*.log
+
+# VS Code workspace
+*.code-workspace
+.vscode/
+
+# Maven wrapper jar (keep it)
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
