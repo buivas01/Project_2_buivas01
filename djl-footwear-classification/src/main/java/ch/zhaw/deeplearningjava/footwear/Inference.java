@@ -4,7 +4,6 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -28,30 +27,35 @@ public class Inference {
     public Inference() {
         try {
             Model model = Models.getModel();
-            // resolve models dir relative to the compiled class location (target/classes → project root)
-            Path classLocation = Paths.get(Inference.class.getProtectionDomain().getCodeSource().getLocation().toURI());
-            Path modelDir = classLocation.getParent().getParent().resolve("models");
-            model.load(modelDir, Models.MODEL_NAME);
 
-            // define a translator for pre and post processing
+            // Use working directory — matches WORKDIR /usr/src/app in Docker
+            Path modelDir = Paths.get("models").toAbsolutePath();
+            System.out.println("Loading model from: " + modelDir);
+
+            model.load(modelDir, Models.MODEL_NAME);
+            System.out.println("Model loaded successfully.");
+
             Translator<Image, Classifications> translator = ImageClassificationTranslator.builder()
                     .addTransform(new ToTensor())
                     .optApplySoftmax(true)
                     .build();
             predictor = model.newPredictor(translator);
+            System.out.println("Predictor created successfully.");
 
         } catch (Exception e) {
+            System.err.println("ERROR loading model: " + e.getMessage());
             e.printStackTrace();
         }
     }
 
     public Classifications predict(byte[] image) throws ModelException, TranslateException, IOException {
+        if (predictor == null) {
+            throw new IllegalStateException("Model predictor is not initialized — check startup logs for model loading errors.");
+        }
         InputStream is = new ByteArrayInputStream(image);
         BufferedImage bi = ImageIO.read(is);
         Image img = ImageFactory.getInstance().fromImage(bi);
         img = img.resize(Models.IMAGE_WIDTH, Models.IMAGE_HEIGHT, false);
-
-        Classifications predictResult = this.predictor.predict(img);
-        return predictResult;
+        return this.predictor.predict(img);
     }
 }
