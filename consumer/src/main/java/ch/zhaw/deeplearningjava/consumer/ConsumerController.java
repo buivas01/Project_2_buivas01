@@ -18,11 +18,6 @@ import java.io.InputStream;
 @RestController
 public class ConsumerController {
 
-    @GetMapping("/")
-    public String root() {
-        return "DJL Consumer app is up and running! Use POST /analyze to classify an image.";
-    }
-
     @GetMapping("/ping")
     public String ping() {
         return "DJL Consumer app is up and running!";
