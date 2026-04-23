@@ -34,43 +34,28 @@ function checkFiles(files) {
 
     fetch('/analyze', {
         method: 'POST',
-        headers: {
-        },
         body: formData
-    }).then(
-        response => {
-            console.log("Response:", response)
-            response.text().then(function (text) {
-                console.log("Raw response text:", text);
-                try {
-                    // Parse JSON response
-                    const jsonData = JSON.parse(text);
-                    console.log("Parsed JSON:", jsonData);
-
-                    // Hide loading indicator
-                    document.getElementById("loadingPart").style.display = "none";
-                    document.getElementById("resultsPart").style.display = "block";
-
-                    // Display results
-                    displayResults(jsonData);
-                } catch (e) {
-                    console.error("Error parsing JSON:", e);
-                    console.error("Response text was:", text);
-                    document.getElementById("loadingPart").style.display = "none";
-                    alert("Error processing the response: " + e.message);
-                }
-            });
-
-        }
-    ).then(
-        success => console.log(success)
-    ).catch(
-        error => {
-            console.log("Fetch error:", error);
+    }).then(response => {
+        if (!response.ok) {
             document.getElementById("loadingPart").style.display = "none";
-            alert("Error uploading file: " + error);
+            alert("Server error: " + response.status + " " + response.statusText);
+            return;
         }
-    );
+        response.text().then(function (text) {
+            try {
+                const jsonData = JSON.parse(text);
+                document.getElementById("loadingPart").style.display = "none";
+                document.getElementById("resultsPart").style.display = "block";
+                displayResults(jsonData);
+            } catch (e) {
+                document.getElementById("loadingPart").style.display = "none";
+                alert("Error processing the response: " + e.message);
+            }
+        });
+    }).catch(error => {
+        document.getElementById("loadingPart").style.display = "none";
+        alert("Error uploading file: " + error);
+    });
 }
 
 function displayResults(jsonData) {
