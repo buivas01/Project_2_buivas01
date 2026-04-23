@@ -1,7 +1,7 @@
 services:
 
   web-service:
-    image: mosazhaw/djl-serving-consumer:latest
+    image: kyruu17/djl-serving-consumer:latest
     platform: linux/amd64
     ports:
       - "80:8082"
