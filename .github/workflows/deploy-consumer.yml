@@ -31,17 +31,5 @@ jobs:
           push: true
           tags: kyruu17/djl-serving-consumer:latest
 
-      - name: Login to Azure
-        uses: azure/login@v2
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
-
-      - name: Deploy to Azure Web App
-        run: |
-          az webapp config container set \
-            --resource-group mdm-project2 \
-            --name buivas01-consumer \
-            --docker-custom-image-name kyruu17/djl-serving-consumer:latest
-          az webapp restart \
-            --resource-group mdm-project2 \
-            --name buivas01-consumer
+      - name: Trigger Azure deployment via webhook
+        run: curl -s -X POST "${{ secrets.AZURE_WEBHOOK_CONSUMER }}"
