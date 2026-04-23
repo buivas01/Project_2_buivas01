@@ -23,27 +23,33 @@ public class ConsumerController {
         return "DJL Consumer app is up and running!";
     }
 
-    private boolean isDockerized() {
+    private String resolveModelUri() {
+        String envUrl = System.getenv("MODEL_SERVICE_URL");
+        if (envUrl != null && !envUrl.isBlank()) {
+            return envUrl;
+        }
         File f = new File("/.dockerenv");
-        return f.exists();
+        if (f.exists()) {
+            return "http://model-service:8080/predictions/resnet18_v1";
+        }
+        return "http://localhost:8080/predictions/resnet18_v1";
     }
 
     @PostMapping(path = "/analyze")
     public String predict(@RequestParam("image") MultipartFile image) throws Exception {
         InputStream is = new ByteArrayInputStream(image.getBytes());
-
-        var uri = "http://localhost:8080/predictions/resnet18_v1";
-        if (this.isDockerized()) {
-            uri = "http://model-service:8080/predictions/resnet18_v1";
-        }
+        String uri = resolveModelUri();
 
         var webClient = WebClient.create();
         Resource resource = new InputStreamResource(is);
 
+        var multipartBuilder = new org.springframework.http.client.MultipartBodyBuilder();
+        multipartBuilder.part("image", resource);
+
         var result = webClient.post()
                 .uri(uri)
                 .contentType(MediaType.MULTIPART_FORM_DATA)
-                .body(BodyInserters.fromResource(resource))
+                .body(BodyInserters.fromMultipartData(multipartBuilder.build()))
                 .retrieve()
                 .bodyToMono(String.class)
                 .block();

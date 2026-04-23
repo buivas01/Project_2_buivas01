@@ -27,13 +27,16 @@ function checkFiles(files) {
         method: 'POST',
         body: formData
     }).then(response => {
+        if (!response.ok) {
+            document.getElementById("loadingPart").style.display = "none";
+            alert("Server error: " + response.status + " " + response.statusText);
+            return;
+        }
         response.text().then(function (text) {
             try {
                 const jsonData = JSON.parse(text);
-
                 document.getElementById("loadingPart").style.display = "none";
                 document.getElementById("resultsPart").style.display = "block";
-
                 displayResults(jsonData);
             } catch (e) {
                 document.getElementById("loadingPart").style.display = "none";
