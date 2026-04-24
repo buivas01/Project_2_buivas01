@@ -49,23 +49,27 @@ function checkFiles(files) {
     });
 }
 
+function cleanLabel(raw) {
+    return (raw || 'Unknown').replace(/^n\d{8}\s+/, '');
+}
+
 function displayResults(jsonData) {
     let classifications = [];
 
     if (Array.isArray(jsonData)) {
         classifications = jsonData.map(item => ({
-            className: item.className || item.class || item.name || String(item),
+            className: cleanLabel(item.className || item.class || item.name || String(item)),
             probability: parseFloat(item.probability || 0)
         }));
     } else if (jsonData.classes && Array.isArray(jsonData.classes)) {
         classifications = jsonData.classes.map(item => ({
-            className: item.className || item.class || item.name,
+            className: cleanLabel(item.className || item.class || item.name),
             probability: parseFloat(item.probability || 0)
         }));
     } else if (typeof jsonData === 'object') {
         for (const [key, value] of Object.entries(jsonData)) {
             if (typeof value === 'number') {
-                classifications.push({ className: key, probability: parseFloat(value) });
+                classifications.push({ className: cleanLabel(key), probability: parseFloat(value) });
             }
         }
     }
