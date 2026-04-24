@@ -1,8 +1,9 @@
 package ch.zhaw.deeplearningjava.consumer;
 
 import org.springframework.core.io.ByteArrayResource;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.client.MultipartBodyBuilder;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -39,20 +40,12 @@ public class ConsumerController {
     }
 
     @PostMapping(path = "/analyze")
-    public String predict(@RequestParam("image") MultipartFile image) throws Exception {
+    public ResponseEntity<String> predict(@RequestParam("image") MultipartFile image) throws Exception {
         String uri = resolveModelUri();
         System.out.println("Calling: " + uri);
 
         byte[] bytes = image.getBytes();
-        ByteArrayResource resource = new ByteArrayResource(bytes) {
-            @Override
-            public String getFilename() {
-                return image.getOriginalFilename() != null ? image.getOriginalFilename() : "image.jpg";
-            }
-        };
-
-        MultipartBodyBuilder builder = new MultipartBodyBuilder();
-        builder.part("image", resource, MediaType.IMAGE_JPEG);
+        ByteArrayResource resource = new ByteArrayResource(bytes);
 
         var webClient = WebClient.builder()
                 .codecs(c -> c.defaultCodecs().maxInMemorySize(20 * 1024 * 1024))
@@ -61,21 +54,26 @@ public class ConsumerController {
         try {
             var result = webClient.post()
                     .uri(uri)
-                    .contentType(MediaType.MULTIPART_FORM_DATA)
-                    .body(BodyInserters.fromMultipartData(builder.build()))
+                    .contentType(MediaType.IMAGE_JPEG)
+                    .body(BodyInserters.fromResource(resource))
                     .retrieve()
                     .bodyToMono(String.class)
                     .timeout(Duration.ofSeconds(120))
                     .block();
 
             System.out.println("Response: " + result);
-            return result;
+            return ResponseEntity.ok(result);
         } catch (WebClientResponseException e) {
             System.err.println("HTTP error " + e.getStatusCode() + ": " + e.getResponseBodyAsString());
-            throw e;
+            HttpStatus status = e.getStatusCode().value() == 403 || e.getStatusCode().value() == 503
+                    ? HttpStatus.SERVICE_UNAVAILABLE
+                    : HttpStatus.BAD_GATEWAY;
+            return ResponseEntity.status(status)
+                    .body("Model service unavailable (" + e.getStatusCode() + "). Please try again later.");
         } catch (Exception e) {
             System.err.println("Error calling model service: " + e.getMessage());
-            throw e;
+            return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
+                    .body("Could not reach model service: " + e.getMessage());
         }
     }
 }
