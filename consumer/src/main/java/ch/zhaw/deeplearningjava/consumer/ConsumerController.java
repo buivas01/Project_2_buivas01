@@ -61,6 +61,7 @@ public class ConsumerController {
                     .timeout(Duration.ofSeconds(120))
                     .block();
 
+            result = result.replaceAll("\"n\\d{8} ", "\"");
             System.out.println("Response: " + result);
             return ResponseEntity.ok(result);
         } catch (WebClientResponseException e) {
